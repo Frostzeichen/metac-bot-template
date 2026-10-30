@@ -704,28 +704,28 @@ if __name__ == "__main__":
     publish_to_metaculus = True
     print_startup_banner(run_mode, will_publish=publish_to_metaculus)
 
-    # Configure the bot. The `llms=` block below is commented out to use
-    # whichever default models forecasting-tools picks based on your env vars;
-    # uncomment and edit to pin specific models.
+    # Configure the bot. llms= pins explicit models: primary = 550B free MoE,
+    # support calls = 30B free reasoning model, researcher = no_research
+    # (forecast from question text alone). ~4-5 calls per question.
     template_bot = FallTemplateBot2026(
         research_reports_per_question=1,
-        predictions_per_research_report=5,
+        predictions_per_research_report=3,  # N=3 averaging (decision D3)
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=publish_to_metaculus,
         folder_to_save_reports_to=None,
         skip_previously_forecasted_questions=True,
         extra_metadata_in_explanation=True,
-        # llms={
-        #     "default": GeneralLlm(
-        #         model="openrouter/openai/gpt-4o",
-        #         temperature=0.3,
-        #         timeout=40,
-        #         allowed_tries=2,
-        #     ),
-        #     "summarizer": "openai/gpt-4o-mini",
-        #     "researcher": "asknews/news-summaries",
-        #     "parser": "openai/gpt-4o-mini",
-        # },
+        llms={
+            "default": GeneralLlm(
+                model="openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+                temperature=0.2,
+                timeout=180,
+                allowed_tries=2,
+            ),
+            "summarizer": "openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+            "researcher": "no_research",
+            "parser": "openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        },
     )
 
     # Per-mode tournament URL shown in the summary banner footer. These
